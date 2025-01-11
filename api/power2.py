@@ -1,14 +1,12 @@
-from flask import Flask, render_template, request, jsonify
-import folium
-from folium.plugins import MarkerCluster
 import requests
-import polyline
-import random
-import itertools
+import folium
 import numpy as np
+import polyline
+import itertools
+import random
 import time
-from concurrent.futures import ThreadPoolExecutor
-
+from flask import Flask, jsonify, request
+from folium.plugins import MarkerCluster
 
 app = Flask(__name__)
 
@@ -58,21 +56,14 @@ class TSP:
         except (requests.RequestException, ValueError):
             return [], 0
 
-
     def add_to_matrices(self):
-        # Initialize lists to store distances and routes
         distances = []
         routes = []
 
-        # Iterate over nodes
         for i in range(len(self.nodes)):
-            # Assuming self.get_route_osrm() returns a tuple
             data = self.get_route_osrm(self.nodes[-1][:2], self.nodes[i][:2])
-
-            # Append distance (scalar) and route (tuple) to respective lists
             distances.append(data[1])
-            routes.append(data[0])  # Add the route as a tuple
-        # Convert distances to a NumPy arra
+            routes.append(data[0])
         distances = np.array(distances)
 
         self.routes_matrix.append(routes[:-1])
@@ -99,7 +90,6 @@ class TSP:
         return min_path, min_cost
 
     def nearest_neighbor(self):
-        a = time.time()
         n = len(self.distance_matrix)
         visited = [False] * n
         path = [0]  # Start from the first node
@@ -136,43 +126,34 @@ class TSP:
             size = len(parent1)
             start, end = sorted(random.sample(range(size), 2))
             child = [-1] * size
-            child[start:end] = parent1[start:end]
-
-            pointer = 0
-            for gene in parent2:
-                if gene not in child:
-                    while child[pointer] != -1:
-                        pointer += 1
-                    child[pointer] = gene
+            for i in range(start, end + 1):
+                child[i] = parent1[i]
+            for i in range(size):
+                if child[i] == -1:
+                    for p in parent2:
+                        if p not in child:
+                            child[i] = p
+                            break
             return child
 
-        n = len(self.distance_matrix)
-        population = [random.sample(range(n), n) for _ in range(population_size)]
-
+        population = [random.sample(range(len(self.distance_matrix)), len(self.distance_matrix)) for _ in range(population_size)]
         for _ in range(generations):
-            population = sorted(population, key=fitness)
-            next_generation = population[:population_size // 2]
-
-            while len(next_generation) < population_size:
-                parents = random.sample(next_generation, 2)
-                child = crossover(parents[0], parents[1])
+            population.sort(key=lambda x: fitness(x))
+            new_population = population[:10]  # Keep the best 10
+            while len(new_population) < population_size:
+                parent1, parent2 = random.sample(new_population[:10], 2)
+                child = crossover(parent1, parent2)
                 mutate(child)
-                next_generation.append(child)
+                new_population.append(child)
+            population = new_population
 
-            population = next_generation
-
-        best_path = min(population, key=fitness)
+        best_path = min(population, key=lambda x: fitness(x))
         best_cost = fitness(best_path)
         return best_path, best_cost
 
 tsp = TSP()
 
-@app.route("/")
-def home():
-    tsp.map.save("static/map.html")
-    return render_template("index.html")
-
-@app.route("/add_node", methods=["POST"])
+@app.route('/add_node', methods=['POST'])
 def add_node():
     address = request.form.get("address")
     location = tsp.geocode_address(address)
@@ -184,9 +165,9 @@ def add_node():
         return jsonify({"success": True, "message": f"Node added: {address}"})
     return jsonify({"success": False, "message": "Failed to geocode address."})
 
-@app.route("/calculate_route", methods=["POST"])
+@app.route('/calculate_route', methods=['GET'])
 def calculate_route():
-    algorithm = request.form.get("algorithm")
+    algorithm = request.args.get("algorithm")
     if len(tsp.nodes) < 2:
         return jsonify({"success": False, "message": "At least two nodes are required."})
 
