@@ -1,21 +1,21 @@
 {
-  "name": "the-salesperson-problem",   // Project name
-  "version": "1.0.0",                  // Project version
-  "description": "A project for solving the Salesperson Problem", // Project description
-  "main": "index.js",                  // Main entry file
-  "type": "module",                    // Enable ECMAScript Modules (ESM)
+  "name": "the-salesperson-problem",
+  "version": "1.0.0",
+  "description": "A project for solving the Salesperson Problem",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",          // Script to run the project locally
-    "dev": "vercel dev",               // For local testing of Vercel functions
-    "build": "vercel build"            // Build script for deployment (if needed)
+    "start": "node index.js",
+    "dev": "vercel dev",
+    "build": "vercel build"
   },
   "dependencies": {
-    "express": "^4.17.1",              // Example dependency for server-side logic
-    "axios": "^0.21.1"                 // Example dependency (for HTTP requests)
+    "express": "^4.17.1",
+    "axios": "^0.21.1"
   },
   "devDependencies": {
-    "vercel": "^24.0.0"                // Optional: For local development and deployment (Vercel CLI)
+    "vercel": "^24.0.0"
   },
-  "author": "David Orenstein",         // Author information
-  "license": "MIT"                     // License type (MIT in this case)
+  "author": "David Orenstein",
+  "license": "MIT"
 }
