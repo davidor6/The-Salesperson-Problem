@@ -8,7 +8,7 @@ import time
 from flask import Flask, jsonify, request
 from folium.plugins import MarkerCluster
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
 class TSP:
     def __init__(self):
