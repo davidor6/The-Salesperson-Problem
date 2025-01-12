@@ -1,1 +1,1 @@
-web: gunicorn The_Salesperson_Problem:app
+web: gunicorn app:app
